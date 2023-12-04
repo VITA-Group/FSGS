@@ -2,7 +2,11 @@
 
 
 
-###  [Project](https://zehaozhu.github.io/FSGS/) | [Arxiv](https://arxiv.org/abs/2312.00451)
+[//]: # (###  [Project]&#40;https://zehaozhu.github.io/FSGS/&#41; | [Arxiv]&#40;https://arxiv.org/abs/2312.00451&#41;)
+
+[![Paper](https://img.shields.io/badge/cs.CV-Paper-b31b1b?logo=arxiv&logoColor=red)](https://arxiv.org/abs/2312.00451)
+[![Project Page](https://img.shields.io/badge/FSGS-Website-blue?logo=googlechrome&logoColor=blue)](https://zehaozhu.github.io/FSGS/)
+[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FVITA-Group%2FFSGS&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com)
 
 
 
