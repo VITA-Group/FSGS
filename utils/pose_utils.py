@@ -137,7 +137,7 @@ def transform_poses_pca(poses):
     transform = np.diag(np.array([scale_factor] * 3 + [1])) @ transform
     return poses_recentered, transform
 
-def generate_ellipse_path(views, n_frames=180, const_speed=True, z_variation=0., z_phase=0.):
+def generate_ellipse_path(views, n_frames=600, const_speed=True, z_variation=0., z_phase=0.):
     poses = []
     for view in views:
         tmp_view = np.eye(4)

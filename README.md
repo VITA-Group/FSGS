@@ -72,10 +72,24 @@ python metrics.py --model_path "output/horns"
 
 ## Acknowledgement
 
-Special thanks to the [3D Gaussian Splatting](https://github.com/graphdeco-inria/diff-gaussian-rasterization) and [DreamGaussian](https://github.com/ashawkey/diff-gaussian-rasterization). 
+Special thanks to the following awesome projects!
 
+- [Gaussian-Splatting](https://github.com/graphdeco-inria/gaussian-splatting)
+- [DreamGaussian](https://github.com/ashawkey/diff-gaussian-rasterization)
+- [SparseNeRF](https://github.com/Wanggcong/SparseNeRF)
+- [MipNeRF-360](https://github.com/google-research/multinerf)
 
 ## Citation
-```
+If you find our work useful for your project, please consider citing the following paper.
 
+
+```
+@misc{zhu2023FSGS, 
+title={FSGS: Real-Time Few-Shot View Synthesis using Gaussian Splatting}, 
+author={Zehao Zhu and Zhiwen Fan and Yifan Jiang and Zhangyang Wang}, 
+year={2023},
+eprint={2312.00451},
+archivePrefix={arXiv},
+primaryClass={cs.CV} 
+}
 ```
