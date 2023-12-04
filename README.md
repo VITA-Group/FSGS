@@ -11,6 +11,11 @@
 
 
 ---------------------------------------------------
+<p align="center">
+  <a href="">
+    <img src="assets/video_demo_1page.gif" alt="demo" width="95%">
+  </a>
+</p>
 
 
 ## Environmental Setups
