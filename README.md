@@ -1,6 +1,6 @@
 # FSGS: Real-Time Few-Shot View Synthesis using Gaussian Splatting
 
-## arXiv Preprint
+
 
 ###  [Project](https://zehaozhu.github.io/FSGS/) | [Arxiv](https://zehaozhu.github.io/FSGS/)
 
