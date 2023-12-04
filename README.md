@@ -2,7 +2,7 @@
 
 
 
-###  [Project](https://zehaozhu.github.io/FSGS/) | [Arxiv](https://zehaozhu.github.io/FSGS/)
+###  [Project](https://zehaozhu.github.io/FSGS/) | [Arxiv](https://arxiv.org/abs/2312.00451)
 
 
 

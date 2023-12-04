@@ -128,7 +128,7 @@ def round_python3(number):
         return 2.0 * round(number / 2.0)
     return rounded
 
-def pipeline(scene, base_path, n_views=6):
+def pipeline(scene, base_path, n_views):
     llffhold = 8
     view_path = str(n_views) + '_views'
     os.chdir(base_path + scene)
@@ -172,7 +172,7 @@ def pipeline(scene, base_path, n_views=6):
     with open('created/points3D.txt', "w") as fid:
         pass
 
-    res = os.popen( 'colmap feature_extractor --database_path database.db --image_path images  --SiftExtraction.max_image_size 4032 --SiftExtraction.max_num_features 16384 --SiftExtraction.estimate_affine_shape 1 --SiftExtraction.domain_size_pooling 1').read()
+    res = os.popen( 'colmap feature_extractor --database_path database.db --image_path images  --SiftExtraction.max_image_size 4032 --SiftExtraction.max_num_features 32768 --SiftExtraction.estimate_affine_shape 1 --SiftExtraction.domain_size_pooling 1').read()
     os.system( 'colmap exhaustive_matcher --database_path database.db --SiftMatching.guided_matching 1 --SiftMatching.max_num_matches 32768')
     db = COLMAPDatabase.connect('database.db')
     db_images = db.execute("SELECT * FROM images")
@@ -192,5 +192,5 @@ def pipeline(scene, base_path, n_views=6):
 
 
 for scene in ['fern', 'flower', 'fortress',  'horns',  'leaves',  'orchids',  'room',  'trex']:# ['bonsai', 'counter', 'garden', 'kitchen', 'room', 'stump']:
-    pipeline(scene, base_path = 'dataset/nerf_llff_data/')
+    pipeline(scene, base_path = 'dataset/nerf_llff_data/', n_views = 3)
 

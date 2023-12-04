@@ -128,7 +128,7 @@ def round_python3(number):
         return 2.0 * round(number / 2.0)
     return rounded
 
-def pipeline(scene, base_path, n_views=6):
+def pipeline(scene, base_path, n_views):
     llffhold = 8
     view_path = str(n_views) + '_views'
     os.chdir(base_path + scene)
@@ -192,6 +192,6 @@ def pipeline(scene, base_path, n_views=6):
 
 
 for scene in ['bicycle', 'bonsai', 'counter', 'garden', 'kitchen', 'room', 'stump']:
-    pipeline(scene, base_path = 'dataset/nerf_llff_data/')
+    pipeline(scene, base_path = 'dataset/mipnerf360/', n_views = 24)
 
 
