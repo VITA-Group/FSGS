@@ -36,11 +36,6 @@ from lpipsPyTorch import lpips
 
 
 def training(dataset, opt, pipe, args):
-    midas = torch.hub.load("intel-isl/MiDaS", 'DPT_Hybrid').cuda()
-    midas.eval()
-    for param in midas.parameters():
-        param.requires_grad = False
-
     testing_iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from = args.test_iterations, \
             args.save_iterations, args.checkpoint_iterations, args.start_checkpoint, args.debug_from
     first_iter = 0
@@ -107,13 +102,13 @@ def training(dataset, opt, pipe, args):
         pseudo_cam = pseudo_stack.pop(randint(0, len(pseudo_stack) - 1))
 
         rendered_depth = render_pkg["depth"][0]
-        midas_depth = torch.tensor(viewpoint_cam.depth_image).cuda()
+        estimate_depth = torch.tensor(viewpoint_cam.depth_image).cuda()
         rendered_depth = rendered_depth.reshape(-1, 1)
-        midas_depth = midas_depth.reshape(-1, 1)
+        estimate_depth = estimate_depth.reshape(-1, 1)
 
         depth_loss = min(
-                        (1 - pearson_corrcoef( - midas_depth, rendered_depth)),
-                        (1 - pearson_corrcoef(1 / (midas_depth + 200.), rendered_depth))
+                        (1 - pearson_corrcoef( - estimate_depth, rendered_depth)),
+                        (1 - pearson_corrcoef(1 / (estimate_depth + 200.), rendered_depth))
         )
         loss += args.depth_weight * depth_loss
 
@@ -126,11 +121,11 @@ def training(dataset, opt, pipe, args):
 
             render_pkg_all = render(pseudo_cam, gaussians, pipe, background)
             rendered_depth_pseudo = render_pkg_all["depth"][0]
-            midas_depth_pseudo = estimate_depth(render_pkg_all["render"], mode='train')
+            estimate_depth_pseudo = estimate_depth(render_pkg_all["render"], mode='train')
 
             rendered_depth_pseudo = rendered_depth_pseudo.reshape(-1, 1)
-            midas_depth_pseudo = midas_depth_pseudo.reshape(-1, 1)
-            depth_loss_pseudo = (1 - pearson_corrcoef(rendered_depth_pseudo, -midas_depth_pseudo)).mean()
+            estimate_depth_pseudo = estimate_depth_pseudo.reshape(-1, 1)
+            depth_loss_pseudo = (1 - pearson_corrcoef(rendered_depth_pseudo, -estimate_depth_pseudo)).mean()
 
             if torch.isnan(depth_loss_pseudo).sum() == 0:
                 loss_scale = min((iteration - args.start_sample_pseudo) / 500., 1)
@@ -161,13 +156,13 @@ def training(dataset, opt, pipe, args):
                            scene.model_path + "/chkpnt" + str(iteration) + ".pth")
 
             # Densification
-            if   iteration < opt.densify_until_iter:
+            if  iteration < opt.densify_until_iter:
                 # Keep track of max radii in image-space for pruning
                 gaussians.max_radii2D[visibility_filter] = torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter])
                 gaussians.add_densification_stats(viewspace_point_tensor, visibility_filter)
 
                 if iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
-                    size_threshold = 20 if iteration > opt.opacity_reset_interval else None
+                    size_threshold = None
                     gaussians.densify_and_prune(opt.densify_grad_threshold, opt.prune_threshold, scene.cameras_extent, size_threshold, iteration)
 
 
@@ -179,6 +174,7 @@ def training(dataset, opt, pipe, args):
             gaussians.update_learning_rate(iteration)
             if (iteration - args.start_sample_pseudo - 1) % opt.opacity_reset_interval == 0 and \
                     iteration > args.start_sample_pseudo:
+                print(iteration)
                 gaussians.reset_opacity()
 
 
