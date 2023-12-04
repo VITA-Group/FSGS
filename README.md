@@ -11,9 +11,9 @@
 
 
 ---------------------------------------------------
-<p align="center">
+<p align="center" >
   <a href="">
-    <img src="https://github.com/zehaozhu/misc/blob/main/video_demo_1page.gif" alt="Logo" width="95%">
+    <img src="https://github.com/zehaozhu/misc/blob/main/video_demo_1page.gif" alt="demo" width="85%">
   </a>
 </p>
 
