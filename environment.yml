@@ -15,9 +15,9 @@ dependencies:
   - pip:
     - submodules/diff-gaussian-rasterization-confidence
     - submodules/simple-knn
-    - matplotlib=3.5.3
-    - torchmetrics=1.2.0
-    - timm=0.9.12
-    - opencv_python=4.8.1.78
-    - imageio=2.31.2
-    - open3d=0.17.0
+    - matplotlib==3.5.3
+    - torchmetrics==1.2.0
+    - timm==0.9.12
+    - opencv_python==4.8.1.78
+    - imageio==2.31.2
+    - open3d==0.17.0
