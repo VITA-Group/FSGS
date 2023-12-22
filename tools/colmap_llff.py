@@ -192,5 +192,5 @@ def pipeline(scene, base_path, n_views):
 
 
 for scene in ['fern', 'flower', 'fortress',  'horns',  'leaves',  'orchids',  'room',  'trex']:# ['bonsai', 'counter', 'garden', 'kitchen', 'room', 'stump']:
-    pipeline(scene, base_path = 'dataset/nerf_llff_data/', n_views = 3)
+    pipeline(scene, base_path = '/ssd1/zehao/FSGS/dataset/nerf_llff_data/', n_views = 3)  # please use absolute path!
 

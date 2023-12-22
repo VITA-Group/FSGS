@@ -67,8 +67,8 @@ class PipelineParams(ParamGroup):
         self.convert_SHs_python = False
         self.compute_cov3D_python = False
         self.debug = False
-        self.use_confidence = True
-        self.use_color = False
+        self.use_confidence = False
+        self.use_color = True
         super().__init__(parser, "Pipeline Parameters")
 
 class OptimizationParams(ParamGroup):
@@ -93,6 +93,7 @@ class OptimizationParams(ParamGroup):
         self.prune_threshold = 0.005
         self.start_sample_pseudo = 2000
         self.end_sample_pseudo = 9500
+        self.sample_pseudo_interval = 10
         self.dist_thres = 10.
         self.depth_weight = 0.05
         self.depth_pseudo_weight = 0.5

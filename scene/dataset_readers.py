@@ -193,7 +193,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder, path, rgb_m
 
         image_path = os.path.join(images_folder, os.path.basename(extr.name))
         image_name = os.path.basename(image_path).split(".")[0]
-        rgb_path = os.path.join(images_folder, rgb_mapping[idx])
+        rgb_path = rgb_mapping[idx]   # os.path.join(images_folder, rgb_mapping[idx])
         rgb_name = os.path.basename(rgb_path).split(".")[0]
         image = Image.open(rgb_path)
 

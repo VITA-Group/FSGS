@@ -27,6 +27,8 @@ conda activate FSGS
 ```
 
 ## Data Preparation
+In data preparation step, we reconstruct the sparse view inputs using SfM using the camera poses provided by datasets. Next, we continue the dense stereo matching under COLMAP with the function `patch_match_stereo` and obtain the fused stereo point cloud from `stereo_fusion`. 
+
 ``` 
 cd FSGS
 mkdir dataset 
@@ -45,18 +47,30 @@ unzip -d mipnerf360 360_v2.zip
 # run colmap on MipNeRF-360 dataset
 python tools/colmap_360.py
 ``` 
-In data preparation step, we reconstruct the sparse view inputs using SfM using the camera poses provided by datasets. Next, we continue the dense stereo matching under COLMAP with the function `patch_match_stereo` and obtain the fused stereo point cloud from `stereo_fusion`. 
+
+
+We use the latest version of colmap to preprocess the datasets. If you can not install colmap on the server, we provide a docker option. 
+``` 
+# if you have not installed colmap, follow this to build a docker environment
+docker run --gpus all -it --name fsgs_colmap --shm-size=32g  -v /home:/home colmap/colmap:latest /bin/bash
+apt-get install pip
+pip install numpy
+python tools/colmap_llff.py
+``` 
+
+
+We provide both the sparse and dense point cloud after we proprecess them. You may download them [through this link](https://drive.google.com/drive/folders/1lYqZLuowc84Dg1cyb8ey3_Kb-wvPjDHA?usp=sharing). We use dense point cloud during training but you can still try sparse point cloud on your own.
 
 ## Training
-To train FSGS on LLFF dataset with 3 views, please use 
+Train FSGS on LLFF dataset with 3 views
 ``` 
-python train.py  --source_path dataset/nerf_llff_data/horns --model_path output/horns --eval  --use_color --n_views 3 
+python train.py  --source_path dataset/nerf_llff_data/horns --model_path output/horns --eval  --n_views 3 --sample_pseudo_interval 1
 ``` 
 
 
-To train FSGS on MipNeRF-360 dataset with 24 views, please use 
+Train FSGS on MipNeRF-360 dataset with 24 views
 ``` 
-python train.py  --source_path dataset/mipnerf360/garden --model_path output/garden --eval  --use_color --n_views 24 
+python train.py  --source_path dataset/mipnerf360/garden --model_path output/garden  --eval  --n_views 24 --depth_pseudo_weight 0.03  
 ``` 
 
 
@@ -64,13 +78,13 @@ python train.py  --source_path dataset/mipnerf360/garden --model_path output/gar
 Run the following script to render the images.  
 
 ```
-python render.py --source_path dataset/nerf_llff_data/horns/  --model_path  output/horns_full4 --iteration 10000  --video
+python render.py --source_path dataset/nerf_llff_data/horns/  --model_path  output/horns --iteration 10000  --video
 ```
 
 You can customize the rendering path as same as NeRF by adding `video` argument
 
 ```
-python render.py --source_path dataset/nerf_llff_data/horns/  --model_path  output/horns_full4 --iteration 10000  --video  --fps 30
+python render.py --source_path dataset/nerf_llff_data/horns/  --model_path  output/horns --iteration 10000  --video  --fps 30
 ```
 
 ## Evaluation

@@ -97,10 +97,6 @@ def training(dataset, opt, pipe, args):
         loss = ((1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(image, gt_image)))
 
 
-        if not pseudo_stack:
-            pseudo_stack = scene.getPseudoCameras().copy()
-        pseudo_cam = pseudo_stack.pop(randint(0, len(pseudo_stack) - 1))
-
         rendered_depth = render_pkg["depth"][0]
         midas_depth = torch.tensor(viewpoint_cam.depth_image).cuda()
         rendered_depth = rendered_depth.reshape(-1, 1)
@@ -117,7 +113,10 @@ def training(dataset, opt, pipe, args):
 
 
 
-        if iteration > args.start_sample_pseudo and iteration < args.end_sample_pseudo:
+        if iteration % args.sample_pseudo_interval == 0 and iteration > args.start_sample_pseudo and iteration < args.end_sample_pseudo:
+            if not pseudo_stack:
+                pseudo_stack = scene.getPseudoCameras().copy()
+            pseudo_cam = pseudo_stack.pop(randint(0, len(pseudo_stack) - 1))
 
             render_pkg_pseudo = render(pseudo_cam, gaussians, pipe, background)
             rendered_depth_pseudo = render_pkg_pseudo["depth"][0]
@@ -147,11 +146,11 @@ def training(dataset, opt, pipe, args):
                             testing_iterations, scene, render, (pipe, background))
 
             if iteration > first_iter and (iteration in saving_iterations):
-                print("\n[ITER {}] Saving Gaussians".format(iteration), gaussians.get_xyz.shape)
+                print("\n[ITER {}] Saving Gaussians".format(iteration))
                 scene.save(iteration)
 
             if iteration > first_iter and (iteration in checkpoint_iterations):
-                print("\n[ITER {}] Saving Checkpoint".format(iteration), gaussians.get_xyz.shape, iteration, first_iter)
+                print("\n[ITER {}] Saving Checkpoint".format(iteration))
                 torch.save((gaussians.capture(), iteration),
                            scene.model_path + "/chkpnt" + str(iteration) + ".pth")
 
@@ -174,7 +173,6 @@ def training(dataset, opt, pipe, args):
             gaussians.update_learning_rate(iteration)
             if (iteration - args.start_sample_pseudo - 1) % opt.opacity_reset_interval == 0 and \
                     iteration > args.start_sample_pseudo:
-                print(iteration)
                 gaussians.reset_opacity()
 
 
@@ -259,10 +257,10 @@ if __name__ == "__main__":
     parser.add_argument('--debug_from', type=int, default=-1)
     parser.add_argument('--detect_anomaly', action='store_true', default=False)
 
-    parser.add_argument("--test_iterations", nargs="+", type=int, default=[500,1000,2000,2500,3000,4000,5000,6000,7000,8000,9000,10000])
-    parser.add_argument("--save_iterations", nargs="+", type=int, default=[ 500, 10_00, 20_00, 30_00, 50_00, 70_00, 10_000, 20_000, 30_000])
+    parser.add_argument("--test_iterations", nargs="+", type=int, default=[10_00, 20_00, 30_00, 50_00, 10_000])
+    parser.add_argument("--save_iterations", nargs="+", type=int, default=[50_00, 10_000])
     parser.add_argument("--quiet", action="store_true")
-    parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[500, 10_00, 20_00, 30_00, 50_00, 70_00, 10_000, 20_000, 30_000, 60_000, 90_000])
+    parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[50_00, 10_000])
     parser.add_argument("--start_checkpoint", type=str, default = None)
     parser.add_argument("--train_bg", action="store_true")
     args = parser.parse_args(sys.argv[1:])

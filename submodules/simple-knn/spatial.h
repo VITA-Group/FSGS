@@ -10,5 +10,6 @@
  */
 
 #include <torch/extension.h>
+#include <tuple>
 
-torch::Tensor distCUDA2(const torch::Tensor& points);
+std::tuple<torch::Tensor, torch::Tensor> distCUDA2(const torch::Tensor& points);
