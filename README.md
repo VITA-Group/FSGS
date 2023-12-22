@@ -49,13 +49,13 @@ python tools/colmap_360.py
 ``` 
 
 
-We use the latest version of colmap to preprocess the datasets. If you can not install colmap on the server, we provide a docker option. 
+We use the latest version of colmap to preprocess the datasets. If you meet issues on installing colmap, we provide a docker option. 
 ``` 
-# if you have not installed colmap, follow this to build a docker environment
+# if you can not install colmap, follow this to build a docker environment
 docker run --gpus all -it --name fsgs_colmap --shm-size=32g  -v /home:/home colmap/colmap:latest /bin/bash
 apt-get install pip
 pip install numpy
-python tools/colmap_llff.py
+python3 tools/colmap_llff.py
 ``` 
 
 
