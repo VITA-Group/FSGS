@@ -78,7 +78,7 @@ python train.py  --source_path dataset/mipnerf360/garden --model_path output/gar
 Run the following script to render the images.  
 
 ```
-python render.py --source_path dataset/nerf_llff_data/horns/  --model_path  output/horns --iteration 10000  --video
+python render.py --source_path dataset/nerf_llff_data/horns/  --model_path  output/horns --iteration 10000
 ```
 
 You can customize the rendering path as same as NeRF by adding `video` argument
