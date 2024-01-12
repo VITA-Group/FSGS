@@ -14,7 +14,7 @@
 ---------------------------------------------------
 <p align="center" >
   <a href="">
-    <img src="https://github.com/zehaozhu/misc/blob/main/video_demo_1page.gif" alt="demo" width="85%">
+    <img src="https://github.com/zhiwenfan/zhiwenfan.github.io/blob/master/Homepage_files/videos/FSGS_gif.gif?raw=true" alt="demo" width="85%">
   </a>
 </p>
 
