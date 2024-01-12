@@ -25,6 +25,7 @@ We provide install method based on Conda package and environment management:
 conda env create --file environment.yml
 conda activate FSGS
 ```
+**CUDA 11.7** is strongly recommended.
 
 ## Data Preparation
 In data preparation step, we reconstruct the sparse view inputs using SfM using the camera poses provided by datasets. Next, we continue the dense stereo matching under COLMAP with the function `patch_match_stereo` and obtain the fused stereo point cloud from `stereo_fusion`. 
