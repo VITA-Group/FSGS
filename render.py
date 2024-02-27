@@ -8,6 +8,7 @@
 #
 # For inquiries contact  george.drettakis@inria.fr
 #
+import copy
 import matplotlib.pyplot as plt
 import torch
 from scene import Scene
@@ -54,7 +55,7 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
 def render_video(source_path, model_path, iteration, views, gaussians, pipeline, background, fps=30):
     render_path = os.path.join(model_path, 'video', "ours_{}".format(iteration))
     makedirs(render_path, exist_ok=True)
-    view = views[0]
+    view = copy.deepcopy(views[0])
 
     if source_path.find('llff') != -1:
         render_poses = generate_spiral_path(np.load(source_path + '/poses_bounds.npy'))
