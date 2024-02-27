@@ -92,7 +92,7 @@ python render.py --source_path dataset/nerf_llff_data/horns/  --model_path  outp
 You can just run the following script to evaluate the model.  
 
 ```
-python metrics.py --model_path "output/horns" 
+python metrics.py --source_path dataset/nerf_llff_data/horns/  --model_path  output/horns --iteration 10000
 ```
 
 ## Acknowledgement
