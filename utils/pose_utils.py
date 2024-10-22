@@ -312,3 +312,61 @@ def generate_random_poses_360(views, n_frames=10000, z_variation=0.1, z_phase=0)
         render_pose[:3, 1:3] *= -1
         render_poses.append(np.linalg.inv(render_pose))
     return render_poses
+
+
+def generate_random_poses_blender(views, n_frames=10000, z_variation=0.1, z_phase=0):
+    poses = []
+    for view in views:
+        tmp_view = np.eye(4)
+        tmp_view[:3] = np.concatenate([view.R.T, view.T[:, None]], 1)
+        tmp_view = np.linalg.inv(tmp_view)
+        tmp_view[:, 1:3] *= -1
+        poses.append(tmp_view)
+    poses = np.stack(poses, 0)
+    poses, transform = transform_poses_pca(poses)
+
+
+    # Calculate the focal point for the path (cameras point toward this).
+    center = focus_point_fn(poses)
+    # Path height sits at z=0 (in middle of zero-mean capture pattern).
+    offset = np.array([center[0] , center[1],  0 ])
+    # Calculate scaling for ellipse axes based on input camera positions.
+    sc = np.percentile(np.abs(poses[:, :3, 3] - offset), 90, axis=0)
+
+    # Use ellipse that is symmetric about the focal point in xy.
+    low = -sc + offset
+    high = sc + offset
+    # Optional height variation need not be symmetric
+    z_low = np.percentile((poses[:, :3, 3]), 10, axis=0)
+    z_high = np.percentile((poses[:, :3, 3]), 90, axis=0)
+
+    def get_positions(theta):
+        # Interpolate between bounds with trig functions to get ellipse in x-y.
+        # Optionally also interpolate in z to change camera height along path.
+        return np.stack([
+            (low[0] + (high - low)[0] * (np.cos(theta) * .5 + .5)),
+            (low[1] + (high - low)[1] * (np.sin(theta) * .5 + .5)),
+            z_variation * (z_low[2] + (z_high - z_low)[2] *
+                           (np.cos(theta + 2 * np.pi * z_phase) * .5 + .5)),
+        ], -1)
+
+    theta = np.random.rand(n_frames) * 2. * np.pi
+    positions = get_positions(theta)
+
+    # Throw away duplicated last position.
+    positions = positions[:-1]
+
+    # Set path's up vector to axis closest to average of input pose up vectors.
+    avg_up = poses[:, :3, 1].mean(0)
+    avg_up = avg_up / np.linalg.norm(avg_up)
+    ind_up = np.argmax(np.abs(avg_up))
+    up = np.eye(3)[ind_up] * np.sign(avg_up[ind_up])
+
+    render_poses = []
+    for p in positions:
+        render_pose = np.eye(4)
+        render_pose[:3] = viewmatrix(p - center, up, p)
+        render_pose = np.linalg.inv(transform) @ render_pose
+        render_pose[:3, 1:3] *= -1
+        render_poses.append(np.linalg.inv(render_pose))
+    return render_poses

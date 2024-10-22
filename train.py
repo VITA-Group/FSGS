@@ -132,6 +132,10 @@ def training(dataset, opt, pipe, args):
 
 
         loss.backward()
+
+        if args.wandb:
+            wandb.log({"loss": loss.item(), "l1_loss": Ll1.item(), "depth_loss": depth_loss.item()})
+
         with torch.no_grad():
             # Progress bar
             ema_loss_for_log = 0.4 * loss.item() + 0.6 * ema_loss_for_log
@@ -258,11 +262,13 @@ if __name__ == "__main__":
     parser.add_argument('--detect_anomaly', action='store_true', default=False)
 
     parser.add_argument("--test_iterations", nargs="+", type=int, default=[10_00, 20_00, 30_00, 50_00, 10_000])
-    parser.add_argument("--save_iterations", nargs="+", type=int, default=[50_00, 10_000])
+    parser.add_argument("--save_iterations", nargs="+", type=int, default=[1, 100, 200, 300, 400, 500, 600, 700, 800, 900, 10_00, 20_00, 30_00, 40_00, 50_00, 10_000])
     parser.add_argument("--quiet", action="store_true")
-    parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[50_00, 10_000])
+    parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[1, 100, 200, 300, 400, 500, 600, 700, 800, 900, 10_00, 20_00, 30_00, 40_00, 50_00, 10_000])
+    # parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[50_00, 10_000])
     parser.add_argument("--start_checkpoint", type=str, default = None)
     parser.add_argument("--train_bg", action="store_true")
+    parser.add_argument("--wandb", action="store_true")
     args = parser.parse_args(sys.argv[1:])
     args.save_iterations.append(args.iterations)
 
@@ -272,11 +278,18 @@ if __name__ == "__main__":
 
     # Initialize system state (RNG)
     safe_state(args.quiet)
+    if args.wandb:
+        wandb.init(
+            project="FSGS-blender",
+            config=vars(args),
+        )
 
     # Start GUI server, configure and run training
     # network_gui.init(args.ip, args.port)
     torch.autograd.set_detect_anomaly(args.detect_anomaly)
     training(lp.extract(args), op.extract(args), pp.extract(args), args)
 
+    if args.wandb:
+        wandb.finish()
     # All done
     print("\nTraining complete.")

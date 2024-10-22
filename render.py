@@ -94,11 +94,12 @@ def render_sets(dataset : ModelParams, pipeline : PipelineParams, args):
         if args.video:
             render_video(dataset.source_path, dataset.model_path, scene.loaded_iter, scene.getTestCameras(),
                          gaussians, pipeline, background, args.fps)
-
-        if not args.skip_train:
-            render_set(dataset.model_path, "train", scene.loaded_iter, scene.getTrainCameras(), gaussians, pipeline, background, args)
-        if not args.skip_test:
-            render_set(dataset.model_path, "test", scene.loaded_iter, scene.getTestCameras(), gaussians, pipeline, background, args)
+        
+        render_set(dataset.model_path, "eval", scene.loaded_iter, scene.getEvalCameras(), gaussians, pipeline, background, near)
+        # if not args.skip_train:
+        #     render_set(dataset.model_path, "train", scene.loaded_iter, scene.getTrainCameras(), gaussians, pipeline, background, args)
+        # if not args.skip_test:
+        #     render_set(dataset.model_path, "test", scene.loaded_iter, scene.getTestCameras(), gaussians, pipeline, background, args)
 
 
 

@@ -140,7 +140,6 @@ def pipeline(scene, base_path, n_views):
     os.mkdir('images')
     os.system('colmap model_converter  --input_path ../sparse/0/ --output_path ../sparse/0/  --output_type TXT')
 
-
     images = {}
     with open('../sparse/0/images.txt', "r") as fid:
         while True:
@@ -172,8 +171,8 @@ def pipeline(scene, base_path, n_views):
     with open('created/points3D.txt', "w") as fid:
         pass
 
-    res = os.popen( 'colmap feature_extractor --database_path database.db --image_path images  --SiftExtraction.max_image_size 4032 --SiftExtraction.max_num_features 32768 --SiftExtraction.estimate_affine_shape 1 --SiftExtraction.domain_size_pooling 1').read()
-    os.system( 'colmap exhaustive_matcher --database_path database.db --SiftMatching.guided_matching 1 --SiftMatching.max_num_matches 32768')
+    res = os.popen( 'colmap feature_extractor --database_path database.db --image_path images  --SiftExtraction.max_image_size 4032 --SiftExtraction.max_num_features 8192 --SiftExtraction.estimate_affine_shape 1 --SiftExtraction.domain_size_pooling 1').read()
+    os.system( 'colmap exhaustive_matcher --database_path database.db --SiftMatching.guided_matching 1 --SiftMatching.max_num_matches 8192')
     db = COLMAPDatabase.connect('database.db')
     db_images = db.execute("SELECT * FROM images")
     img_rank = [db_image[1] for db_image in db_images]
@@ -183,14 +182,14 @@ def pipeline(scene, base_path, n_views):
             print(img_name)
             data = [str(1 + idx)] + [' ' + item for item in images[os.path.basename(img_name)]] + ['\n\n']
             fid.writelines(data)
+    
+    os.system('colmap point_triangulator --database_path database.db --image_path images/ --input_path created/  --output_path triangulated/  --Mapper.ba_local_max_num_iterations 40 --Mapper.ba_local_max_refinements 3 --Mapper.ba_global_max_num_iterations 100')
+    os.system('colmap model_converter  --input_path triangulated/ --output_path triangulated/  --output_type TXT')
+    os.system('colmap image_undistorter --image_path images/ --input_path triangulated/ --output_path dense/')
+    os.system('colmap patch_match_stereo --workspace_path dense/')
+    os.system('colmap stereo_fusion --workspace_path dense/ --output_path dense/fused.ply')
 
-    os.system('colmap point_triangulator --database_path database.db --image_path images --input_path created  --output_path triangulated  --Mapper.ba_local_max_num_iterations 40 --Mapper.ba_local_max_refinements 3 --Mapper.ba_global_max_num_iterations 100')
-    os.system('colmap model_converter  --input_path triangulated --output_path triangulated  --output_type TXT')
-    os.system('colmap image_undistorter --image_path images --input_path triangulated --output_path dense')
-    os.system('colmap patch_match_stereo --workspace_path dense')
-    os.system('colmap stereo_fusion --workspace_path dense --output_path dense/fused.ply')
 
-
-for scene in ['fern', 'flower', 'fortress',  'horns',  'leaves',  'orchids',  'room',  'trex']:# ['bonsai', 'counter', 'garden', 'kitchen', 'room', 'stump']:
-    pipeline(scene, base_path = '/ssd1/zehao/FSGS/dataset/nerf_llff_data/', n_views = 3)  # please use absolute path!
+for scene in ['flower']:# ['bonsai', 'counter', 'garden', 'kitchen', 'room', 'stump']:
+    pipeline(scene, base_path = '/home/daeunlee/workspace/FSGS/dataset/nerf_llff_data/', n_views = 3)  # please use absolute path!
 

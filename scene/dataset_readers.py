@@ -53,6 +53,25 @@ class SceneInfo(NamedTuple):
     nerf_normalization: dict
     ply_path: str
 
+
+def topk_(matrix, K, axis=1):
+    if axis == 0:
+        row_index = np.arange(matrix.shape[1 - axis])
+        topk_index = np.argpartition(-matrix, K, axis=axis)[0:K, :]
+        topk_data = matrix[topk_index, row_index]
+        topk_index_sort = np.argsort(-topk_data,axis=axis)
+        topk_data_sort = topk_data[topk_index_sort,row_index]
+        topk_index_sort = topk_index[0:K,:][topk_index_sort,row_index]
+    else:
+        column_index = np.arange(matrix.shape[1 - axis])[:, None]
+        topk_index = np.argpartition(-matrix, K, axis=axis)[:, 0:K]
+        topk_data = matrix[column_index, topk_index]
+        topk_index_sort = np.argsort(-topk_data, axis=axis)
+        topk_data_sort = topk_data[column_index, topk_index_sort]
+        topk_index_sort = topk_index[:,0:K][column_index,topk_index_sort]
+    return topk_data_sort
+
+
 def getNerfppNorm(cam_info):
     def get_center_and_diag(cam_centers):
         cam_centers = np.hstack(cam_centers)
@@ -321,8 +340,9 @@ def readCamerasFromTransforms(path, transformsfile, white_background, extension=
         contents = json.load(json_file)
         fovx = contents["camera_angle_x"]
 
-        skip = 8 if transformsfile == 'transforms_test.json' else 1
-        frames = contents["frames"][::skip]
+        # skip = 8 if transformsfile == 'transforms_test.json' else 1
+        skip = 1
+        frames = contents["frames"]
         for idx, frame in tqdm(enumerate(frames)):
             cam_name = os.path.join(path, frame["file_path"] + extension)
 
@@ -336,7 +356,8 @@ def readCamerasFromTransforms(path, transformsfile, white_background, extension=
             R = np.transpose(w2c[:3,:3])  # R is stored transposed due to 'glm' in CUDA code
             T = w2c[:3, 3]
 
-            image_path = os.path.join(path, cam_name)
+            # image_path = os.path.join(path, cam_name)
+            image_path = cam_name
             image_name = Path(cam_name).stem
             image = Image.open(image_path)
 
@@ -353,55 +374,69 @@ def readCamerasFromTransforms(path, transformsfile, white_background, extension=
             FovX = fovx
 
             mask = norm_data[:, :, 3:4]
-            if skip == 1:
-                depth_image = np.load('../SparseNeRF/depth_midas_temp_DPT_Hybrid/Blender/' +
-                                      image_path.split('/')[-4]+'/'+image_name+'_depth.npy')
-            else:
-                depth_image = None
+            # if skip == 1:
+            #     depth_image = np.load('../SparseNeRF/depth_midas_temp_DPT_Hybrid/Blender/' +
+            #                           image_path.split('/')[-4]+'/'+image_name+'_depth.npy')
+            # else:
+            #     depth_image = None
+            # depth_mono_path = os.path.join('/'.join(image_path.split("/")[:-1]), 'depth_maps', 'depth_' + image_name + '.png')
+            # depth_image = Image.open(depth_mono_path)
 
-            arr = cv2.resize(arr, (400, 400))
+            # arr = cv2.resize(arr, (400, 400))
             image = Image.fromarray(np.array(arr * 255.0, dtype=np.byte), "RGB")
-            depth_image = None if depth_image is None else cv2.resize(depth_image, (400, 400))
-            mask = None if mask is None else cv2.resize(mask, (400, 400))
+            # depth_image = None if depth_image is None else cv2.resize(depth_image, (400, 400))
+            # mask = None if mask is None else cv2.resize(mask, (400, 400))
 
 
             cam_infos.append(CameraInfo(uid=idx, R=R, T=T, FovY=FovY, FovX=FovX, image=image, image_path=image_path,
-                                        image_name=image_name, width=image.size[0], height=image.size[1],
-                                        depth_image=depth_image, mask=mask))
+                                        image_name=image_name, width=image.size[0], height=image.size[1], mask=mask, bounds=None))
     return cam_infos
 
 
 
-def readNerfSyntheticInfo(path, white_background, eval, n_views=0, extension=".png"):
+def readNerfSyntheticInfo(path, white_background, eval, rand_pcd, n_views=0, extension=".png"):
     print("Reading Training Transforms")
     train_cam_infos = readCamerasFromTransforms(path, "transforms_train.json", white_background, extension)
     print("Reading Test Transforms")
     test_cam_infos = readCamerasFromTransforms(path, "transforms_test.json", white_background, extension)
-
-    if not eval:
-        train_cam_infos.extend(test_cam_infos)
+    llffhold = 8
+    if eval:
+        if n_views > 0:
+            train_cam_infos = [c for idx, c in enumerate(train_cam_infos) if idx in [2, 16, 26, 55, 73, 76, 86, 93]]
+        eval_cam_infos = [c for idx, c in enumerate(test_cam_infos) if idx % llffhold == 0]
+        test_cam_infos = test_cam_infos
+    else:
         test_cam_infos = []
+        eval_cam_infos = []
 
-    pseudo_cam_infos = train_cam_infos #train_cam_infos
-    if n_views > 0:
-        train_cam_infos = train_cam_infos[:n_views]
-        assert len(train_cam_infos) == n_views
+    print('train', [info.image_path for info in train_cam_infos])
+    print('eval', [info.image_path for info in eval_cam_infos])
 
     nerf_normalization = getNerfppNorm(train_cam_infos)
 
-    ply_path = os.path.join(path, str(n_views) + "_views/dense/fused.ply")
+    ply_path_random = os.path.join(path, "points3d_random.ply")
+    ply_path_curve = os.path.join(path, "points3d_5.0_noiseonly.ply") # name of the point cloud file
+    ply_path = None
+    if rand_pcd:
+        print('Init random point cloud.')
+        ply_path = ply_path_random
+    else:
+        print('Init point cloud from 3D curves.')
+        print('Path:', ply_path_curve)
+        ply_path = ply_path_curve
 
-    # if not os.path.exists(ply_path):
-    #     # Since this data set has no colmap data, we start with random points
-    #     num_pts = 30000
-    #     print(f"Generating random point cloud ({num_pts})...")
-    #
-    #     # We create random points inside the bounds of the synthetic Blender scenes
-    #     xyz = np.random.random((num_pts, 3)) * 2.6 - 1.3
-    #     shs = np.random.random((num_pts, 3)) / 255.0
-    #     pcd = BasicPointCloud(points=xyz, colors=SH2RGB(shs), normals=np.zeros((num_pts, 3)))
-    #
-    #     storePly(ply_path, xyz, SH2RGB(shs) * 255)
+    if not os.path.exists(ply_path):
+        # Since this data set has no colmap data, we start with random points
+        num_pts = 10_000
+        print(f"Generating random point cloud ({num_pts})...")
+        
+        # We create random points inside the bounds of the synthetic Blender scenes
+        xyz = np.random.random((num_pts, 3)) * 2 - 1
+        shs = np.random.random((num_pts, 3)) / 255.0
+        pcd = BasicPointCloud(points=xyz, colors=SH2RGB(shs), normals=np.zeros((num_pts, 3)))
+
+        storePly(ply_path, xyz, SH2RGB(shs) * 255)
+
     try:
         pcd = fetchPly(ply_path)
     except:
@@ -411,7 +446,6 @@ def readNerfSyntheticInfo(path, white_background, eval, n_views=0, extension=".p
     scene_info = SceneInfo(point_cloud=pcd,
                            train_cameras=train_cam_infos,
                            test_cameras=test_cam_infos,
-                           pseudo_cameras=pseudo_cam_infos,
                            nerf_normalization=nerf_normalization,
                            ply_path=ply_path)
     return scene_info

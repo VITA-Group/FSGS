@@ -18,7 +18,7 @@ from scene.dataset_readers import sceneLoadTypeCallbacks
 from scene.gaussian_model import GaussianModel
 from arguments import ModelParams
 from utils.camera_utils import cameraList_from_camInfos, camera_to_JSON
-from utils.pose_utils import generate_random_poses_llff, generate_random_poses_360
+from utils.pose_utils import generate_random_poses_llff, generate_random_poses_360, generate_random_poses_blender
 from scene.cameras import PseudoCamera
 
 class Scene:
@@ -48,7 +48,7 @@ class Scene:
             scene_info = sceneLoadTypeCallbacks["Colmap"](args.source_path, args.images, args.eval, args.n_views)
         elif os.path.exists(os.path.join(args.source_path, "transforms_train.json")):
             print("Found transforms_train.json file, assuming Blender data set!")
-            scene_info = sceneLoadTypeCallbacks["Blender"](args.source_path, args.white_background, args.eval, args.n_views)
+            scene_info = sceneLoadTypeCallbacks["Blender"](args.source_path, args.white_background, args.eval, args.rand_pcd, args.n_views)
         else:
             assert False, "Could not recognize scene type!"
 
@@ -81,10 +81,12 @@ class Scene:
             self.test_cameras[resolution_scale] = cameraList_from_camInfos(scene_info.test_cameras, resolution_scale, args)
 
             pseudo_cams = []
-            if args.source_path.find('llff'):
+            if args.source_path.find('llff') > 0:
                 pseudo_poses = generate_random_poses_llff(self.train_cameras[resolution_scale])
-            elif args.source_path.find('360'):
+            elif args.source_path.find('360') > 0:
                 pseudo_poses = generate_random_poses_360(self.train_cameras[resolution_scale])
+            else:
+                pseudo_poses = generate_random_poses_blender(self.train_cameras[resolution_scale])
             view = self.train_cameras[resolution_scale][0]
             for pose in pseudo_poses:
                 pseudo_cams.append(PseudoCamera(

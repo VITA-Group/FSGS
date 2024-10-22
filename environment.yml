@@ -4,8 +4,8 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - cudatoolkit=11.6
-  - plyfile=0.8.1
+  - cudatoolkit
+  - plyfile
   - python=3.8.1
   - pip=22.3.1
   - pytorch=1.12.1
@@ -15,9 +15,9 @@ dependencies:
   - pip:
     - submodules/diff-gaussian-rasterization-confidence
     - submodules/simple-knn
-    - matplotlib==3.5.3
-    - torchmetrics==1.2.0
-    - timm==0.9.12
-    - opencv_python==4.8.1.78
-    - imageio==2.31.2
-    - open3d==0.17.0
+    - matplotlib
+    - torchmetrics
+    - timm
+    - opencv_python
+    - imageio
+    - open3d

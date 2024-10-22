@@ -55,6 +55,7 @@ class ModelParams(ParamGroup):
         self.data_device = "cuda"
         self.eval = False
         self.n_views = 0
+        self.rand_pcd = True
         super().__init__(parser, "Loading Parameters", sentinel)
 
     def extract(self, args):
